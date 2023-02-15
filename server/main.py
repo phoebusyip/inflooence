@@ -1,5 +1,15 @@
 
 
+import time
+from routes import router as book_router
+from dotenv import dotenv_values
+from fastapi import FastAPI
+from pymongo import MongoClient, InsertOne
+import json
+import pymongo
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+from search_spotify import search_sp
 from dotenv import load_dotenv
 import os
 from pickletools import pylist
@@ -16,24 +26,9 @@ load_dotenv()
 SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
 SPOTIPY_CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET')
 SPOTIPY_REDIRECT_URI = os.getenv('SPOTIPY_REDIRECT_URI')
-from search_spotify import search_sp
-
-from spotipy.oauth2 import SpotifyClientCredentials
-import spotipy
-import pymongo
-import json
-from pymongo import MongoClient, InsertOne
-from fastapi import FastAPI
-from dotenv import dotenv_values
-from routes import router as book_router
-
-import time
 
 
-
-
-
-#install pymongo, spotipy, fastapi, pythonshell, bs4, webdriver-manager, seleniumin terminal
+# install pymongo, spotipy, fastapi, pythonshell, bs4, webdriver-manager, seleniumin terminal
 
 class Song:
     def __init__(self, all_info):
@@ -50,7 +45,8 @@ class Song:
         self.url = all_info[10]
 
     def display_info(self):
-        print(self.title, self.artist, self.sid, self.ac, self.dance, self.energy, self.liveness, self.loudness, self.tempo, self.time_signature, self.url)
+        print(self.title, self.artist, self.sid, self.ac, self.dance, self.energy,
+              self.liveness, self.loudness, self.tempo, self.time_signature, self.url)
 
     def toJson(self):
         return json.dumps(self.all_info)
@@ -58,17 +54,19 @@ class Song:
 
 browser_options = Options()
 browser_options.headless = True
-DRIVER_PATH = "../chromedriver"
+DRIVER_PATH = "./Chromedriver/chromedriver"
 
-#### MONGODB
+# MONGODB
 config = dotenv_values(".env")
 
 app = FastAPI()
+
 
 @app.on_event("startup")
 def startup_db_client():
     app.mongodb_client = MongoClient(config["ATLAS_URI"])
     app.database = app.mongodb_client[config["DB_NAME"]]
+
 
 @app.on_event("shutdown")
 def shutdown_db_client():
@@ -76,16 +74,19 @@ def shutdown_db_client():
 
 # app.include_router(book_router, tags=["songs"], prefix="/song")
 
-SPOTIPY_CLIENT_SECRET="ba457fdecdc3453c87b7e5aaba0123fc"
-SPOTIPY_CLIENT_ID="0048909068294db1b98e49ed9c7d5dc8"
-SPOTIPY_REDIRECT_URI="http://localhost:8888/callback"
+
+SPOTIPY_CLIENT_SECRET = "ba457fdecdc3453c87b7e5aaba0123fc"
+SPOTIPY_CLIENT_ID = "0048909068294db1b98e49ed9c7d5dc8"
+SPOTIPY_REDIRECT_URI = "http://localhost:8888/callback"
 
 
 # # ------------ SCRAPING --------------------###
 
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options = browser_options)
+driver = webdriver.Chrome(service=Service(
+    ChromeDriverManager().install()), options=browser_options)
 
-driver.get('http://webcache.googleusercontent.com/search?q=cache:https://tokboard.com/')
+driver.get(
+    'http://webcache.googleusercontent.com/search?q=cache:https://tokboard.com/')
 
 soup = BeautifulSoup(driver.page_source, "html.parser")
 
@@ -97,17 +98,17 @@ list_songs_obj = []
 
 # limitless scroll, test timeout
 # time.sleep(2)  # Allow 2 seconds for the web page to open
-# scroll_pause_time = 1 # 
+# scroll_pause_time = 1 #
 # screen_height = driver.execute_script("return window.screen.height;")   # get the screen height of the web
 # i = 1
 
 # while True:
 #     # scroll one screen height each time
-#     driver.execute_script("window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))  
+#     driver.execute_script("window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
 #     i += 1
 #     time.sleep(scroll_pause_time)
 #     # update scroll height each time after scrolled, as the scroll height can change after we scrolled the page
-#     scroll_height = driver.execute_script("return document.body.scrollHeight;")  
+#     scroll_height = driver.execute_script("return document.body.scrollHeight;")
 #     # Break the loop when the height we need to scroll to is larger than the total scroll height
 #     if (screen_height) * i > scroll_height:
 #         break
@@ -121,7 +122,6 @@ i = 1
 j = 0
 
 
-
 while i < len(songs_list):
     params = [songs_list[i].get_text(), artist_list[j].get_text()]
     for element in search_sp(songs_list[i].get_text(), artist_list[j].get_text()):
@@ -129,10 +129,10 @@ while i < len(songs_list):
 
     new_song_obj = Song(params)
 
-    #### debug tool: display each song object
+    # debug tool: display each song object
     # song_obj_new.display_info()
 
-    ### DEBUG
+    # DEBUG
 
     # add new object to array of all song objects
     list_songs_obj.append(new_song_obj)
@@ -149,7 +149,8 @@ outfile.close()
 # ------------ SCRAPING --------------- END
 
 # ----------------------------- MONGODB ----------------------###
-myclient = pymongo.MongoClient("mongodb+srv://INFLOOENCE:INFLOOENCE@inflooence.wode3u7.mongodb.net/?retryWrites=true&w=majority")
+myclient = pymongo.MongoClient(
+    "mongodb+srv://INFLOOENCE:INFLOOENCE@inflooence.wode3u7.mongodb.net/?retryWrites=true&w=majority")
 db = myclient["inflooence"]
 collection = db["songs"]
 # open file
@@ -247,5 +248,3 @@ else:
 
 print("python script finished")
 # driver.quit()
-
-
