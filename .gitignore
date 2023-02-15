@@ -1,3 +1,6 @@
 node_modules/
 __pycache__
 env-pymongo-fastapi-crud
+tempCodeRunnerFile.py
+DEBUG=myapp
+.DS_STORE
